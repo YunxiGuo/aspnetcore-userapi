@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using User.API.Data;
 
@@ -12,11 +13,13 @@ namespace User.API.Controllers
     [Route("api/[controller]")]
     public class UsersController : Controller
     {
-        private UserContext _userContext;
+        private readonly UserContext _userContext;
+        private ILogger<UsersController> _logger;
 
-        public UsersController(UserContext userContext)
+        public UsersController(UserContext userContext, ILogger<UsersController> logger)
         {
             _userContext = userContext;
+            _logger = logger;
         }
 
         [HttpGet]
