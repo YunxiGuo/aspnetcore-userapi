@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using User.Identity.Authorization;
+using User.Identity.Service;
 
 namespace User.Identity
 {
@@ -20,6 +22,9 @@ namespace User.Identity
                 .AddInMemoryApiResources(Config.GetApiResources())
                 .AddInMemoryClients(Config.GetClients())
                 .AddInMemoryIdentityResources(Config.GetIdentityResources());
+            services.AddSingleton<IAuthCodeService, TestAuthCodeService>()
+                .AddSingleton<IUserService, UserApiService>();
+            services.AddSingleton<SmsAuthCodeValidate>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
