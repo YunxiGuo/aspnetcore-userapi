@@ -7,6 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using User.API.Data;
+using User.API.Dtos;
+using User.API.Models;
 
 namespace User.API.Controllers
 {
@@ -38,6 +40,19 @@ namespace User.API.Controllers
                 throw new UserOperationException($"错误的用户Id");
             }
             return Json(user);
+        }
+
+        [HttpPost("create-or-update")]
+        public async Task<IActionResult> CreateOrUpdate([FromBody]CreateUserInput input)
+        {
+            var user = await _userContext.AppUsers.SingleOrDefaultAsync(m => m.Phone == input.Phone);
+            if (user == null)
+            {
+                user = new AppUser {Phone = input.Phone};
+                _userContext.AppUsers.Add(user);
+                await _userContext.SaveChangesAsync();
+            }
+            return Ok(user.Id);
         }
     }
 }
