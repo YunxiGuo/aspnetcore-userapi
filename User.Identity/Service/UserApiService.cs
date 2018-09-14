@@ -1,7 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net;
 using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace User.Identity.Service
 {
@@ -11,20 +16,38 @@ namespace User.Identity.Service
 
         public async Task<int> CheckOrCreate(string phone)
         {
-            var userId = 0;
-            //通过http请求调用User.API的CheckOrCreate接口
-            HttpClient httpClient = new HttpClient();
-            var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get,
-                new Uri(BaseUrl + "api/users/create-or-update")));
-            if (response.StatusCode == HttpStatusCode.OK)
+            try
             {
-                var content = await response.Content.ReadAsStringAsync();
-                if (int.TryParse(content,out userId))
+                using (HttpClient client = new HttpClient())
                 {
-                    
+                    string api = BaseUrl + "api/users/create-or-update";
+
+                    var param = new
+                    {
+                        Phone = "13111111111"
+                    };
+                    byte[] bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(param)); //GetEncoding("GBK")
+                    Stream stream = new MemoryStream(bytes);
+                    StreamContent content = new StreamContent(stream);
+                    content.Headers.ContentType = new MediaTypeHeaderValue("application/json") {CharSet = "UTF-8"};
+
+                    Task<HttpResponseMessage> response = client.PostAsync(api, content);
+
+                    if (response.Result.StatusCode == HttpStatusCode.OK)
+                    {
+                        string resultCode = response.Result.Content.ReadAsStringAsync().Result;
+                    }
+                    else
+                    {
+                        
+                    }
                 }
             }
-            return userId;
+            catch (Exception exception)
+            {
+                //BALABALBALLBA
+            }
+            return 1;
         }
     }
 }

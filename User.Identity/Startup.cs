@@ -19,6 +19,7 @@ namespace User.Identity
         {
             services.AddIdentityServer()
                 .AddDeveloperSigningCredential()
+                .AddExtensionGrantValidator<SmsAuthCodeValidate>()
                 .AddInMemoryApiResources(Config.GetApiResources())
                 .AddInMemoryClients(Config.GetClients())
                 .AddInMemoryIdentityResources(Config.GetIdentityResources());
@@ -34,7 +35,7 @@ namespace User.Identity
             {
                 app.UseDeveloperExceptionPage();
             }
-            app.UseAuthentication();
+            app.UseIdentityServer();
             app.Run(async (context) =>
             {
                 await context.Response.WriteAsync("Hello World!");
