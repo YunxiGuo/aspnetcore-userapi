@@ -42,7 +42,9 @@ namespace User.Identity
                     },
                     AllowedScopes = new List<string>
                     {
-                        "user_api"
+                        "user_api",
+                        IdentityServerConstants.StandardScopes.OfflineAccess,
+                        IdentityServerConstants.StandardScopes.OpenId
                     },
                 }
             };
