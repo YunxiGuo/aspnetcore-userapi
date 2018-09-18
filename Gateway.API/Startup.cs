@@ -1,10 +1,14 @@
-﻿using IdentityServer4.AccessTokenValidation;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using IdentityServer4.AccessTokenValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Ocelot.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
+using Ocelot.Middleware;
 
 namespace Gateway.API
 {
@@ -14,23 +18,14 @@ namespace Gateway.API
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
         {
-            var authenticationProviderKey = "TestKey";
-            //var options = o =>
-            //{
-            //    o.Authority = "https://whereyouridentityserverlives.com";
-            //    o.ApiName = "api";
-            //    o.SupportedTokens = SupportedTokens.Both;
-            //    o.ApiSecret = "secret";
-            //};
-
             services.AddAuthentication()
-                .AddIdentityServerAuthentication(authenticationProviderKey, o =>
+                .AddIdentityServerAuthentication("TestKey", option =>
                 {
-                    o.RequireHttpsMetadata = false;
-                    o.ApiName = "user_api";
-                    o.ApiSecret = "pwd123";
-                    o.Authority = "http://localhost:5003";
-                    o.SupportedTokens = SupportedTokens.Both;
+                    option.ApiName = "gateway_api";
+                    option.ApiSecret = "pwd123";
+                    option.Authority = "http://localhost:5003"; //认证服务地址
+                    option.SupportedTokens = SupportedTokens.Both;
+                    option.RequireHttpsMetadata = false;
                 });
 
             services.AddOcelot();
@@ -43,11 +38,12 @@ namespace Gateway.API
             {
                 app.UseDeveloperExceptionPage();
             }
+            app.UseAuthentication();
+            app.UseOcelot();
             app.Run(async (context) =>
             {
                 await context.Response.WriteAsync("Hello World!");
             });
-            app.UseAuthentication();
         }
     }
 }

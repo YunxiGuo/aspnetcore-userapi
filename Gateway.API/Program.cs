@@ -1,6 +1,12 @@
-﻿using Microsoft.AspNetCore;
+﻿using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Gateway.API
 {
@@ -16,9 +22,10 @@ namespace Gateway.API
                 .ConfigureAppConfiguration((context, builder) =>
                 {
                     builder.SetBasePath(context.HostingEnvironment.ContentRootPath)
-                        .AddJsonFile("configuration.json");
+                        .AddJsonFile("Ocelot.json");
                 })
                 .UseStartup<Startup>()
+                .UseUrls("http://localhost")
                 .Build();
     }
 }

@@ -1,20 +1,19 @@
 ﻿{
   "ReRoutes": [
     {
+      "DownstreamPathTemplate": "/api/users",
+      "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
           "Host": "localhost",
           "Port": 5002
         }
       ],
-      "DownstreamPathTemplate": "/api/users",
       "UpstreamPathTemplate": "/api/users",
       "UpstreamHttpMethod": [ "Get" ],
-      "ReRouteIsCaseSensitive": false,
-      "DownstreamScheme": "http",
       "AuthenticationOptions": {
         "AuthenticationProviderKey": "TestKey",
-        "AllowedScopes": [ "user_api", "offline_access", "opendid" ]
+        "AllowedScopes": []
       }
     },
     {
@@ -31,6 +30,6 @@
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "http://localhost:5008"
+    "BaseUrl": "http://localhost"
   }
 }
