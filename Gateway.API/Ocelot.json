@@ -30,6 +30,6 @@
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "http://localhost"
+    "BaseUrl": "http://localhost:8802"
   }
 }

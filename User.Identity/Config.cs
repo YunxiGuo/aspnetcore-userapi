@@ -20,7 +20,7 @@ namespace User.Identity
         {
             return new List<ApiResource>
             {
-                new ApiResource("user_api","user api")
+                new ApiResource("gateway_api","gateway api")
             };
         }
 
@@ -42,9 +42,7 @@ namespace User.Identity
                     },
                     AllowedScopes = new List<string>
                     {
-                        "user_api",
-                        IdentityServerConstants.StandardScopes.OfflineAccess,
-                        IdentityServerConstants.StandardScopes.OpenId
+                        "gateway_api"
                     },
                 }
             };

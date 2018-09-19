@@ -25,7 +25,7 @@ namespace Gateway.API
                         .AddJsonFile("Ocelot.json");
                 })
                 .UseStartup<Startup>()
-                .UseUrls("http://localhost")
+                .UseUrls("http://localhost:8802")
                 .Build();
     }
 }
