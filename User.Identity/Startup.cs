@@ -20,7 +20,7 @@ namespace User.Identity
         {
             services.AddIdentityServer()
                 .AddDeveloperSigningCredential()
-                .AddExtensionGrantValidator<SmsAuthCodeValidate>()
+                .AddExtensionGrantValidator<SmsAuthCodeValidate>() //添加自定义验证
                 .AddInMemoryApiResources(Config.GetApiResources())
                 .AddInMemoryClients(Config.GetClients())
                 .AddInMemoryIdentityResources(Config.GetIdentityResources());

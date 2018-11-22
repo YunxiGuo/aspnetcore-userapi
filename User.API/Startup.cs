@@ -27,6 +27,13 @@ namespace User.API
                 //options.UseMySQL(Configuration.GetConnectionString("UserApi"));
                 options.UseNpgsql(Configuration.GetConnectionString("UserApi"));
             });
+            services.AddAuthentication("Bearer")
+                .AddIdentityServerAuthentication("Bearer", option =>
+                {
+                    option.Authority = "http://localhost:5003";
+                    option.RequireHttpsMetadata = false;
+                    option.ApiName = "user_api";
+                });
             services.AddMvc(options =>
             {
                 options.Filters.Add<GlobalExceptionFilter>();
@@ -40,7 +47,7 @@ namespace User.API
             {
                 app.UseDeveloperExceptionPage();
             }
-
+            app.UseAuthentication();
             app.UseMvc();
             AppUserInitSeed(app);
         }

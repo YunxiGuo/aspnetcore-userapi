@@ -20,7 +20,8 @@ namespace User.Identity
         {
             return new List<ApiResource>
             {
-                new ApiResource("gateway_api","gateway api")
+                new ApiResource("gateway_api","gateway api"),
+                new ApiResource("user_api","user api")
             };
         }
 
@@ -42,8 +43,26 @@ namespace User.Identity
                     },
                     AllowedScopes = new List<string>
                     {
-                        "gateway_api"
+                        "gateway_api",
+                        "user_api"
                     },
+                },
+                new Client
+                {
+                    ClientId = "android1",
+                    ClientName = "Test Api",
+                    AllowedGrantTypes = new List<string>
+                    {
+                        "SmsAuthCode"
+                    },
+                    ClientSecrets = new List<Secret>
+                    {
+                        new Secret("pwd123".Sha256())
+                    },
+                    AllowedScopes = new List<string>
+                    {
+                        "gateway_api",
+                    }
                 }
             };
         }

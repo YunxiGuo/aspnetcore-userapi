@@ -1,17 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using User.API.Data;
 using User.API.Dtos;
 using User.API.Models;
 
 namespace User.API.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     public class UsersController : Controller
     {
@@ -42,6 +41,7 @@ namespace User.API.Controllers
             return Json(user);
         }
 
+        [AllowAnonymous]
         [HttpPost("create-or-update")]
         public async Task<IActionResult> CreateOrUpdate([FromBody]CreateUserInput input)
         {
