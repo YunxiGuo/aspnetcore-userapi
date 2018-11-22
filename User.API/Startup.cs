@@ -24,7 +24,8 @@ namespace User.API
         {
             services.AddDbContext<UserContext>(options =>
             {
-                options.UseMySQL(Configuration.GetConnectionString("UserApi"));
+                //options.UseMySQL(Configuration.GetConnectionString("UserApi"));
+                options.UseNpgsql(Configuration.GetConnectionString("UserApi"));
             });
             services.AddMvc(options =>
             {
