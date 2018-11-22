@@ -27,7 +27,7 @@ namespace User.Identity.Service
 
             var param = new
             {
-                Phone = "13111111111"
+                Phone = phone
             };
             byte[] bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(param)); //GetEncoding("GBK")
             Stream stream = new MemoryStream(bytes);
