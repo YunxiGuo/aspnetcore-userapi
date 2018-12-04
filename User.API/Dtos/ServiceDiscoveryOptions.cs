@@ -1,6 +1,6 @@
 ﻿namespace User.API.Dtos
 {
-    public class ServiceDisvoveryOptions
+    public class ServiceDiscoveryOptions
     {
         public string ServiceName { get; set; }
 

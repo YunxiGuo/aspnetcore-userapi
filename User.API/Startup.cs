@@ -3,9 +3,12 @@ using System.Linq;
 using Consul;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Hosting.Server.Features;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using User.API.Data;
 using User.API.Dtos;
 using User.API.Filters;
@@ -40,7 +43,18 @@ namespace User.API
                 });
 
             services.AddOptions();
-            services.Configure<ServiceDisvoveryOptions>(Configuration.GetSection("ServiceDiscovery"));
+            services.Configure<ServiceDiscoveryOptions>(Configuration.GetSection("ServiceDiscovery"));
+            //注册consul单例
+            services.AddSingleton<IConsulClient>(p => new ConsulClient(config =>
+                {
+                    var serviceConfiguration = p.GetRequiredService<IOptions<ServiceDiscoveryOptions>>().Value;
+                    if (string.IsNullOrWhiteSpace(serviceConfiguration.Consul.HttpEndpoint))
+                    {
+                        serviceConfiguration.Consul.HttpEndpoint = "http://127.0.0.1:8500";
+                    }
+                    config.Address = new Uri(serviceConfiguration.Consul.HttpEndpoint);
+                })
+            );
             services.AddMvc(options =>
             {
                 options.Filters.Add<GlobalExceptionFilter>();
@@ -48,59 +62,84 @@ namespace User.API
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, IApplicationLifetime applicationLifetime)
+        public void Configure(
+            IApplicationBuilder app, 
+            IHostingEnvironment env, 
+            IApplicationLifetime applicationLifetime,
+            IOptions<ServiceDiscoveryOptions> serviceOptions,
+            IConsulClient consul)
         {
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
             }
             app.UseAuthentication();
-            //服务注册
-            applicationLifetime.ApplicationStarted.Register(ConsulRegister);
-            //服务注销
+            //程序启动时注册服务
+            applicationLifetime.ApplicationStarted.Register(() =>
+            {
+                ConsulRegister(app, consul, serviceOptions);
+            });
+            //程序停止时注销服务
             applicationLifetime.ApplicationStopping.Register(() =>
             {
-                //consulClient.Agent.ServiceDeregister(registration.ID).Wait();//服务停止时取消注册
+                ConsulDeRegister(app,consul,serviceOptions);
             });
             app.UseMvc();
             AppUserInitSeed(app);
         }
 
-        private void ConsulRegister()
+        private void ConsulRegister(
+            IApplicationBuilder app,
+            IConsulClient consul, 
+            IOptions<ServiceDiscoveryOptions> serviceOptions)
         {
-            string ip = Configuration["service:ip"];
-            string port = Configuration["service:port"];
-            string serviceName = Configuration["service:name"];
-            string serviceId = serviceName + Guid.Parse(_userApiId);
 
-            var consulClient = new ConsulClient(m =>
-                m.Address = new Uri(
-                    $"http://{Configuration["ServcieDiscovery:Address"]}:{Configuration["ServcieDiscovery:Port"]}"));
-            var httpCheck = new AgentServiceCheck
+            var features = app.Properties["server.Features"] as FeatureCollection;
+            var addresses = features.Get<IServerAddressesFeature>()
+                .Addresses
+                .Select(p => new Uri(p));
+
+            foreach (var address in addresses)
             {
-                DeregisterCriticalServiceAfter = TimeSpan.FromSeconds(5),//服务启动多久后注册
-                Interval = TimeSpan.FromSeconds(10),//健康检查时间间隔，或者称为心跳间隔
-                HTTP = $"http://{ip}:{port}/api/health",//健康检查地址
-                Timeout = TimeSpan.FromSeconds(5)
-            };
-            // Register service with consul
+                var serviceId = $"{serviceOptions.Value.ServiceName}_{address.Host}:{address.Port}";
 
-            var registration = new AgentServiceRegistration()
-            {
-                Checks = new[] { httpCheck },
-                ID = serviceId,
-                Name = serviceName,
-                Address = ip,
-                Port = Convert.ToInt32(port),
-                Tags = new[] { $"urlprefix-/{serviceName}" }//添加 urlprefix-/servicename 格式的 tag 标签，以便 Fabio 识别
-            };
+                var httpCheck = new AgentServiceCheck()
+                {
+                    DeregisterCriticalServiceAfter = TimeSpan.FromMinutes(1),
+                    Interval = TimeSpan.FromSeconds(10),
+                    HTTP = $"http://{address.Host}:{address.Port}/api/health",//健康检查地址
+                    Timeout = TimeSpan.FromSeconds(5)
+                };
 
-            consulClient.Agent.ServiceRegister(registration).Wait();//服务启动时注册，内部实现其实就是使用 Consul API 进行注册（HttpClient发起）      
+                var registration = new AgentServiceRegistration()
+                {
+                    Checks = new[] { httpCheck },
+                    Address = address.Host,
+                    ID = serviceId,
+                    Name = serviceOptions.Value.ServiceName,
+                    Port = address.Port,
+                    Tags = new[] { $"urlprefix-/{serviceOptions.Value.ServiceName}" }//添加 urlprefix-/servicename 格式的 tag 标签，以便 Fabio 识别
+                };
+
+                consul.Agent.ServiceRegister(registration).GetAwaiter().GetResult();
+            }      
         }
 
-        private void ConsulDeRegister()
+        private void ConsulDeRegister(
+            IApplicationBuilder app,
+            IConsulClient consul, 
+            IOptions<ServiceDiscoveryOptions> serviceOptions)
         {
+            var features = app.Properties["server.Features"] as FeatureCollection;
+            var addresses = features.Get<IServerAddressesFeature>()
+                .Addresses
+                .Select(p => new Uri(p));
+            foreach (var address in addresses)
+            {
+                var serviceId = $"{serviceOptions.Value.ServiceName}_{address.Host}:{address.Port}";
 
+                consul.Agent.ServiceDeregister(serviceId).GetAwaiter().GetResult();
+            }
         }
 
         private void AppUserInitSeed(IApplicationBuilder app)
