@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using User.API.Data;
+using User.API.Dtos;
 using User.API.Filters;
 using User.API.Models;
 
@@ -37,6 +38,9 @@ namespace User.API
                     option.RequireHttpsMetadata = false;
                     option.ApiName = "user_api";
                 });
+
+            services.AddOptions();
+            services.Configure<ServiceDisvoveryOptions>(Configuration.GetSection("ServiceDiscovery"));
             services.AddMvc(options =>
             {
                 options.Filters.Add<GlobalExceptionFilter>();
