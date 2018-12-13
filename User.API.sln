@@ -11,6 +11,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "User.Identity", "User.Ident
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Gateway.API", "Gateway.API\Gateway.API.csproj", "{40CA9916-EBDA-4575-BAF6-49AEBECB64C4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Resilience", "Resilience\Resilience.csproj", "{610C1FB2-D714-4845-9FD3-E25B7F6FA3A4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +35,10 @@ Global
 		{40CA9916-EBDA-4575-BAF6-49AEBECB64C4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40CA9916-EBDA-4575-BAF6-49AEBECB64C4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{40CA9916-EBDA-4575-BAF6-49AEBECB64C4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{610C1FB2-D714-4845-9FD3-E25B7F6FA3A4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{610C1FB2-D714-4845-9FD3-E25B7F6FA3A4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{610C1FB2-D714-4845-9FD3-E25B7F6FA3A4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{610C1FB2-D714-4845-9FD3-E25B7F6FA3A4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
