@@ -44,7 +44,7 @@ namespace User.Identity
             services.AddSingleton<IAuthCodeService, TestAuthCodeService>()
                 .AddSingleton<IUserService, UserApiService>();
             services.AddSingleton<SmsAuthCodeValidate>();
-            services.AddSingleton(new HttpClient());
+            services.AddHttpClient();
             services.Configure<ServiceDiscoveryOptions>(Configuration.GetSection("ServiceDiscovery"));
             services.AddSingleton<IDnsQuery>(s =>
             {

@@ -17,12 +17,12 @@ namespace User.Identity.Service
     public class UserApiService : IUserService
     {
         private readonly string _baseUrl = "";
-        private readonly HttpClient _httpClient;
+        private readonly IHttpClientFactory _clientFactory;
 
 
-        public UserApiService(HttpClient httpClient, IDnsQuery dnsQuery, IOptions<ServiceDiscoveryOptions> options)
+        public UserApiService(IHttpClientFactory clientFactory, IDnsQuery dnsQuery, IOptions<ServiceDiscoveryOptions> options)
         {
-            _httpClient = httpClient;
+            _clientFactory = clientFactory;
             ServiceHostEntry[] result = dnsQuery.ResolveService("service.consul", options.Value.UserServiceName);
             var addressList = result.First().AddressList;
             var address = addressList.Any() ? addressList.First().ToString() : result.First().HostName;
@@ -44,7 +44,7 @@ namespace User.Identity.Service
             StreamContent content = new StreamContent(stream);
             content.Headers.ContentType = new MediaTypeHeaderValue("application/json") { CharSet = "UTF-8" };
 
-            var response = await _httpClient.PostAsync(api, content);
+            var response = await _clientFactory.CreateClient().PostAsync(api, content);
 
             if (response.StatusCode == HttpStatusCode.OK)
             {
