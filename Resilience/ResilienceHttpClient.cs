@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -58,6 +59,17 @@ namespace Resilience
             return null;
             //return HttpMessageInvoker()
         }
+
+        //private async Task<T> HttpInvokere<T>(string origin,Func<Task<T>> fun)
+        //{
+        //    var normalizeOrigin = NormalizeOrigin(origin);
+        //    if (!_policyWraps.TryGetValue(normalizeOrigin,out PolicyWrap policyWrap))
+        //    {
+        //        policyWrap = Policy.WrapAsync(_policyCreator(normalizeOrigin).ToArray());
+        //        _policyWraps.TryAdd(normalizeOrigin, policyWrap);
+        //    }
+        //    return await policyWrap.ExecuteAsync()
+        //}
 
         private static string NormalizeOrigin(string origin)
         {
