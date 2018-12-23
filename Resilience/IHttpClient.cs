@@ -8,7 +8,7 @@ namespace Resilience
         Task<HttpResponseMessage> PostAsync<T>(
             string url,
             T item,
-            string authorizationToken,
+            string authorizationToken = null,
             string requestId = null,
             string authorizationMethod = "Bearer");
     }

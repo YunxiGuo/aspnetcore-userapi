@@ -10,11 +10,14 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Polly;
 using Polly.Extensions.Http;
+using Resilience;
 using User.Identity.Authorization;
 using User.Identity.Dtos;
+using User.Identity.Infrastructure;
 using User.Identity.Service;
 
 namespace User.Identity
@@ -46,7 +49,24 @@ namespace User.Identity
             services.AddSingleton<IAuthCodeService, TestAuthCodeService>()
                 .AddSingleton<IUserService, UserApiService>();
             services.AddSingleton<SmsAuthCodeValidate>();
-            services.AddHttpClient();
+            /*services.AddHttpClient()*/;
+            //注册全局单例IHttpClient
+            services.AddSingleton<ResilienceHttpClientFactory>(sp =>
+            {
+                var logger = sp.GetRequiredService<ILogger<ResilienceHttpClient>>();
+                var httpContextAccessor = sp.GetRequiredService<IHttpContextAccessor>();
+                if (!int.TryParse(Configuration["Polly:RetryCount"], out int retryCount))
+                {
+                    retryCount = 4;
+                }
+                if (!int.TryParse(Configuration["Polly:CircuitCountAllowedBeforeException"],out int circuitAllowedBeforeException))
+                {
+                    circuitAllowedBeforeException = 5;
+                }
+                return new ResilienceHttpClientFactory(logger,httpContextAccessor, retryCount, circuitAllowedBeforeException);
+            });
+            services.AddSingleton<IHttpClient>(sp =>
+                sp.GetRequiredService<ResilienceHttpClientFactory>().GetResilienceHttpClient());
             services.Configure<ServiceDiscoveryOptions>(Configuration.GetSection("ServiceDiscovery"));
             services.AddSingleton<IDnsQuery>(s =>
             {

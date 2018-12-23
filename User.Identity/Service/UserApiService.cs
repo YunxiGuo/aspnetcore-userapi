@@ -1,5 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using DnsClient;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -7,9 +10,8 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
-using DnsClient;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
+using Resilience;
 using User.Identity.Dtos;
 
 namespace User.Identity.Service
@@ -17,12 +19,13 @@ namespace User.Identity.Service
     public class UserApiService : IUserService
     {
         private readonly string _baseUrl = "";
-        private readonly IHttpClientFactory _clientFactory;
+        private readonly IHttpClient _client;
+        private readonly ILogger<UserApiService> _logger;
 
-
-        public UserApiService(IHttpClientFactory clientFactory, IDnsQuery dnsQuery, IOptions<ServiceDiscoveryOptions> options)
+        public UserApiService(IHttpClient client, IDnsQuery dnsQuery, IOptions<ServiceDiscoveryOptions> options, ILogger<UserApiService> logger)
         {
-            _clientFactory = clientFactory;
+            _client = client;
+            _logger = logger;
             ServiceHostEntry[] result = dnsQuery.ResolveService("service.consul", options.Value.UserServiceName);
             var addressList = result.First().AddressList;
             var address = addressList.Any() ? addressList.First().ToString() : result.First().HostName;
@@ -34,22 +37,24 @@ namespace User.Identity.Service
         {
             var userId = 0;
             string api = _baseUrl + "api/users/create-or-update";
-
-            var param = new
+            Dictionary<string,string> dic = new Dictionary<string, string>
             {
-                Phone = phone
+                {"Phone",phone }
             };
-            byte[] bytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(param)); //GetEncoding("GBK")
-            Stream stream = new MemoryStream(bytes);
-            StreamContent content = new StreamContent(stream);
-            content.Headers.ContentType = new MediaTypeHeaderValue("application/json") { CharSet = "UTF-8" };
-
-            var response = await _clientFactory.CreateClient().PostAsync(api, content);
-
-            if (response.StatusCode == HttpStatusCode.OK)
+            try
             {
-                string resultCode = await response.Content.ReadAsStringAsync();
-                int.TryParse(resultCode, out userId);
+                var response = await _client.PostAsync(api, dic);
+
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    string resultCode = await response.Content.ReadAsStringAsync();
+                    int.TryParse(resultCode, out userId);
+                }
+            }
+            catch (Exception e)
+            {
+                _logger.LogWarning($"重试失败:{e.Message} {e.StackTrace}");
+                throw;
             }
             return userId;
         }
